@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictive Analytics & Simulation Dashboard</title>
+    <meta name="description" content="An interactive suite of simulators including Epidemic Spread, AI Population Growth, and Monte Carlo Investment Predictor with advanced interactive visualizations.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* CSS Reset and Variables */
+        :root {
+            --bg-base: #0b0f19;
+            --bg-surface: rgba(22, 30, 49, 0.7);
+            --bg-surface-hover: rgba(30, 41, 67, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-focus: rgba(99, 102, 241, 0.4);
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --primary: #6366f1; /* Indigo */
+            --primary-glow: rgba(99, 102, 241, 0.35);
+            --secondary: #a855f7; /* Purple */
+            --accent-success: #10b981; /* Emerald */
+            --accent-danger: #f43f5e; /* Rose */
+            --accent-warning: #f59e0b; /* Amber */
+            
+            --font-display: 'Outfit', sans-serif;
+            --font-sans: 'Inter', sans-serif;
+            
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(255, 255, 255, 0.05) inset;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 40%);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-base);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Sidebar Navigation */
+        aside {
+            width: 280px;
+            background-color: rgba(11, 15, 25, 0.95);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            z-index: 10;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 3rem;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 8px var(--primary-glow));
+        }
+
+        .logo-text {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to right, #ffffff, var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            flex-grow: 1;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-align: left;
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .nav-btn:hover {
+            background-color: var(--bg-surface-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15));
+            color: var(--text-primary);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 20px -5px rgba(99, 102, 241, 0.2);
+        }
+
+        .nav-btn.active i {
+            color: var(--primary);
+        }
+
+        .nav-btn i {
+            font-size: 1.1rem;
+            transition: var(--transition-smooth);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* Main Content Area */
+        main {
+            margin-left: 280px;
+            flex-grow: 1;
+            padding: 2.5rem;
+            max-width: 1400px;
+            width: calc(100% - 280px);
+        }
+
+        header {
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Dashboard Modules */
+        .dashboard-tab {
+            display: none;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .dashboard-tab.active {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Grid Layouts */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1100px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glassmorphic Panel / Card styling */
+        .panel {
+            background-color: var(--bg-surface);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow-premium);
+            transition: var(--transition-smooth);
+        }
+
+        .panel:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .panel-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .panel-title i {
+            color: var(--primary);
+        }
+
+        /* Input Controls */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group label span.value {
+            color: var(--primary);
+            font-weight: 700;
+            font-family: var(--font-display);
+        }
+
+        /* Custom Range Slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            margin: 10px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary-glow);
+            transition: transform 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: rgba(11, 15, 25, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition-smooth);
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-glow);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition-smooth);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            opacity: 0.7;
+        }
+
+        .stat-card.emerald::before {
+            background: var(--accent-success);
+        }
+
+        .stat-card.rose::before {
+            background: var(--accent-danger);
+        }
+
+        .stat-card.warning::before {
+            background: var(--accent-warning);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            background-color: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .stat-note {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Charts & Reports Panel */
+        .charts-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .chart-wrapper {
+            background-color: rgba(11, 15, 25, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.5rem;
+            height: 400px;
+            position: relative;
+        }
+
+        /* Buttons styling */
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: #ffffff;
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 0.875rem 1.75rem;
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: var(--transition-smooth);
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+            filter: brightness(1.1);
+        }
+
+        .btn.btn-outline {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            box-shadow: none;
+            color: var(--text-primary);
+        }
+
+        .btn.btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--text-muted);
+            box-shadow: none;
+        }
+
+        /* Table Report styles */
+        .table-wrapper {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-top: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+
+        th {
+            background-color: rgba(11, 15, 25, 0.8);
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            position: sticky;
+            top: 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            color: var(--text-primary);
+        }
+
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+        
+        /* Flex rows */
+        .flex-row-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        
+        .flex-child {
+            flex: 1 1 300px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside>
+        <div class="logo-container">
+            <i class="fa-solid fa-chart-line logo-icon"></i>
+            <span class="logo-text">SimulAnalytics</span>
+        </div>
+        <nav>
+            <button class="nav-btn active" onclick="switchTab('epidemic-tab', this)">
+                <i class="fa-solid fa-virus-covid"></i>
+                Epidemic Simulator
+            </button>
+            <button class="nav-btn" onclick="switchTab('population-tab', this)">
+                <i class="fa-solid fa-users-viewfinder"></i>
+                Population Analyzer
+            </button>
+            <button class="nav-btn" onclick="switchTab('investment-tab', this)">
+                <i class="fa-solid fa-sack-dollar"></i>
+                Investment Predictor
+            </button>
+        </nav>
+        <div class="sidebar-footer">
+            <p>Antigravity Engine &copy; 2026</p>
+        </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main>
+        <!-- Epidemic Simulator Module -->
+        <div id="epidemic-tab" class="dashboard-tab active">
+            <header>
+                <div>
+                    <h1 id="epidemic-title">Smart Epidemic Spread Simulator</h1>
+                    <p class="subtitle">Daily virus spread simulation modeling active and recovered populations.</p>
+                </div>
+            </header>
+
+            <div class="grid-2col">
+                <!-- Parameters Panel -->
+                <div class="panel">
+                    <h2 class="panel-title"><i class="fa-solid fa-sliders"></i> Parameters</h2>
+                    
+                    <div class="form-group">
+                        <label for="ep-infected">Initial Infected <span class="value" id="val-ep-infected">10</span></label>
+                        <input type="range" id="ep-infected" min="1" max="100" value="10" oninput="updateEpidemicVal(this, 'val-ep-infected')">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ep-infectrate">Infection Rate (per person/day) <span class="value" id="val-ep-infectrate">2.0</span></label>
+                        <input type="range" id="ep-infectrate" min="0.1" max="5.0" step="0.1" value="2.0" oninput="updateEpidemicVal(this, 'val-ep-infectrate')">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ep-recrate">Recovery Rate (daily %) <span class="value" id="val-ep-recrate">15%</span></label>
+                        <input type="range" id="ep-recrate" min="1" max="100" value="15" oninput="updateEpidemicVal(this, 'val-ep-recrate', '%')">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ep-days">Simulation Days <span class="value" id="val-ep-days">60</span></label>
+                        <input type="range" id="ep-days" min="10" max="90" value="60" oninput="updateEpidemicVal(this, 'val-ep-days')">
+                    </div>
+                    
+                    <button class="btn" style="width: 100%; justify-content: center;" onclick="runEpidemicSimulation()">
+                        <i class="fa-solid fa-play"></i> Run Simulation
+                    </button>
+                </div>
+
+                <!-- Outputs Panel -->
+                <div class="panel">
+                    <h2 class="panel-title"><i class="fa-solid fa-square-poll-vertical"></i> Simulation Metrics</h2>
+                    
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card rose">
+                            <span class="stat-label">Active Infected (End)</span>
+                            <span class="stat-value" id="ep-stat-active">0</span>
+                            <span class="stat-note">Actively spreading cases</span>
+                        </div>
+                        <div class="stat-card emerald">
+                            <span class="stat-label">Total Recovered (End)</span>
+                            <span class="stat-value" id="ep-stat-recovered">0</span>
+                            <span class="stat-note">Immunized population</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Cumulative Cases (End)</span>
+                            <span class="stat-value" id="ep-stat-cumulative">0</span>
+                            <span class="stat-note">Total infections logged</span>
+                        </div>
+                        <div class="stat-card warning">
+                            <span class="stat-label">1 Million Milestone</span>
+                            <span class="stat-value" id="ep-stat-milestone">N/A</span>
+                            <span class="stat-note">Day active cases exceeds 1M</span>
+                        </div>
+                    </div>
+
+                    <!-- Charts and CSV Export -->
+                    <div class="charts-container">
+                        <div class="chart-wrapper">
+                            <canvas id="epidemicChart"></canvas>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-outline" onclick="exportEpidemicCSV()">
+                                <i class="fa-solid fa-file-csv"></i> Export CSV Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Population Analyzer Module -->
+        <div id="population-tab" class="dashboard-tab">
+            <header>
+                <div>
+                    <h1 id="population-title">AI Population Growth Analyzer</h1>
+                    <p class="subtitle">Analyze demographic projections taking growth and migration into account.</p>
+                </div>
+            </header>
+
+            <div class="grid-2col">
+                <!-- Parameters Panel -->
+                <div class="panel">
+                    <h2 class="panel-title"><i class="fa-solid fa-sliders"></i> Parameters</h2>
+                    
+                    <div class="form-group">
+                        <label for="pop-initial">Initial Population <span class="value" id="val-pop-initial">50,000</span></label>
+                        <input type="number" id="pop-initial" min="1000" max="1000000" value="50000" onchange="runPopulationSimulation()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pop-growth">Annual Growth Rate (%) <span class="value" id="val-pop-growth">7%</span></label>
+                        <input type="range" id="pop-growth" min="0" max="25" step="0.1" value="7" oninput="updatePopVal(this, 'val-pop-growth', '%')">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pop-migration">Annual Migration Rate (%) <span class="value" id="val-pop-migration">2%</span></label>
+                        <input type="range" id="pop-migration" min="0" max="15" step="0.1" value="2" oninput="updatePopVal(this, 'val-pop-migration', '%')">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pop-years">Projections (Years) <span class="value" id="val-pop-years">50</span></label>
+                        <input type="range" id="pop-years" min="10" max="100" value="50" oninput="updatePopVal(this, 'val-pop-years')">
+                    </div>
+                    
+                    <button class="btn" style="width: 100%; justify-content: center;" onclick="runPopulationSimulation()">
+                        <i class="fa-solid fa-play"></i> Compute Projections
+                    </button>
+                </div>
+
+                <!-- Outputs Panel -->
+                <div class="panel">
+                    <h2 class="panel-title"><i class="fa-solid fa-square-poll-vertical"></i> Growth Analysis</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">Initial Population</span>
+                            <span class="stat-value" id="pop-stat-initial">50,000</span>
+                            <span class="stat-note">Starting baseline</span>
+                        </div>
+                        <div class="stat-card emerald">
+                            <span class="stat-label">Final Population (50y)</span>
+                            <span class="stat-value" id="pop-stat-final">0</span>
+                            <span class="stat-note">Ending population</span>
+                        </div>
+                        <div class="stat-card warning">
+                            <span class="stat-label">1 Million Milestone</span>
+                            <span class="stat-value" id="pop-stat-milestone">N/A</span>
+                            <span class="stat-note">Year population hits 1M</span>
+                        </div>
+                    </div>
+
+                    <div class="charts-container">
+                        <div class="chart-wrapper">
+                            <canvas id="populationChart"></canvas>
+                        </div>
+                        
+                        <h3 class="panel-title" style="margin-top: 1rem;"><i class="fa-solid fa-table-list"></i> Yearly Projections</h3>
+                        <div class="table-wrapper">
+                            <table id="population-table">
+                                <thead>
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>Population</th>
+                                        <th>Growth (+7%)</th>
+                                        <th>Migration (-2%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-outline" onclick="exportPopulationCSV()">
+                                <i class="fa-solid fa-file-csv"></i> Export Projections CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investment Predictor Module -->
+        <div id="investment-tab" class="dashboard-tab">
+            <header>
+                <div>
+                    <h1 id="investment-title">Smart Investment Predictor</h1>
+                    <p class="subtitle">Monte Carlo projection suite simulating multi-scenario capital growth.</p>
+                </div>
+            </header>
+
+            <div class="grid-2col">
+                <!-- Parameters Panel -->
+                <div class="panel">
+                    <h2 class="panel-title"><i class="fa-solid fa-sliders"></i> Parameters</h2>
+                    
+                    <div class="form-group">
+                        <label for="inv-initial">Initial Capital (₹) <span class="value" id="val-inv-initial">₹1,00,000</span></label>
+                        <input type="number" id="inv-initial" min="1000" value="100000" onchange="runInvestmentSimulation()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="inv-min-return">Min Annual Return (%) <span class="value" id="val-inv-min-return">8%</span></label>
+                        <input type="range" id="inv-min-return" min="0" max="20" step="0.5" value="8" oninput="updateInvVal(this, 'val-inv-min-return', '%')">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="inv-max-return">Max Annual Return (%) <span class="value" id="val-inv-max-return">15%</span></label>
+                        <input type="range" id="inv-max-return" min="0" max="40" step="0.5" value="15" oninput="updateInvVal(this, 'val-inv-max-return', '%')">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="inv-years">Years <span class="value" id="val-inv-years">30</span></label>
+                        <input type="range" id="inv-years" min="5" max="50" value="30" oninput="updateInvVal(this, 'val-inv-years')">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="inv-runs">Simulations (Runs) <span class="value" id="val-inv-runs">1,000</span></label>
+                        <input type="range" id="inv-runs" min="100" max="2000" step="100" value="1000" oninput="updateInvVal(this, 'val-inv-runs')">
+                    </div>
+                    
+                    <button class="btn" style="width: 100%; justify-content: center;" onclick="runInvestmentSimulation()">
+                        <i class="fa-solid fa-shuffle"></i> Run Monte Carlo
+                    </button>
+                </div>
+
+                <!-- Outputs Panel -->
+                <div class="panel">
+                    <h2 class="panel-title"><i class="fa-solid fa-square-poll-vertical"></i> Monte Carlo Results</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card emerald">
+                            <span class="stat-label">Best Outcome</span>
+                            <span class="stat-value" id="inv-stat-best">₹0</span>
+                            <span class="stat-note">Highest performing run</span>
+                        </div>
+                        <div class="stat-card rose">
+                            <span class="stat-label">Worst Outcome</span>
+                            <span class="stat-value" id="inv-stat-worst">₹0</span>
+                            <span class="stat-note">Lowest performing run</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Average Outcome</span>
+                            <span class="stat-value" id="inv-stat-average">₹0</span>
+                            <span class="stat-note">Mean balance across runs</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Median Outcome</span>
+                            <span class="stat-value" id="inv-stat-median">₹0</span>
+                            <span class="stat-note">50th percentile balance</span>
+                        </div>
+                    </div>
+
+                    <div class="charts-container">
+                        <div class="flex-row-wrap">
+                            <div class="flex-child chart-wrapper">
+                                <canvas id="investmentTrajectoryChart"></canvas>
+                            </div>
+                            <div class="flex-child chart-wrapper">
+                                <canvas id="investmentDistributionChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-outline" onclick="exportInvestmentCSV()">
+                                <i class="fa-solid fa-file-csv"></i> Export Ending Balances CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Dashboard App Logic -->
+    <script>
+        // Tab switching function
+        function switchTab(tabId, btn) {
+            // Hide all tabs
+            document.querySelectorAll('.dashboard-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Show active tab
+            document.getElementById(tabId).classList.add('active');
+            
+            // Remove active classes from navigation buttons
+            document.querySelectorAll('.nav-btn').forEach(button => {
+                button.classList.remove('active');
+            });
+            // Add active class to current nav button
+            btn.classList.add('active');
+            
+            // Re-render chart since parent visibility changes can affect canvas rendering
+            setTimeout(() => {
+                if (tabId === 'epidemic-tab' && epidemicChart) epidemicChart.resize();
+                if (tabId === 'population-tab' && populationChart) populationChart.resize();
+                if (tabId === 'investment-tab') {
+                    if (trajectoryChart) trajectoryChart.resize();
+                    if (distributionChart) distributionChart.resize();
+                }
+            }, 100);
+        }
+
+        // Live parameter updates
+        function updateEpidemicVal(input, valueSpanId, unit = '') {
+            let labelVal = input.value;
+            if (unit === '%') {
+                labelVal += '%';
+            } else if (input.id === 'ep-infectrate') {
+                labelVal = parseFloat(input.value).toFixed(1);
+            }
+            document.getElementById(valueSpanId).textContent = labelVal;
+            runEpidemicSimulation();
+        }
+
+        function updatePopVal(input, valueSpanId, unit = '') {
+            let labelVal = input.value;
+            if (unit === '%') {
+                labelVal += '%';
+            }
+            document.getElementById(valueSpanId).textContent = labelVal;
+            runPopulationSimulation();
+        }
+
+        function updateInvVal(input, valueSpanId, unit = '') {
+            let labelVal = input.value;
+            if (unit === '%') {
+                labelVal += '%';
+            } else if (input.id === 'inv-runs') {
+                labelVal = parseInt(input.value).toLocaleString();
+            } else if (input.id === 'inv-initial') {
+                labelVal = '₹' + parseInt(input.value).toLocaleString('en-IN');
+            }
+            document.getElementById(valueSpanId).textContent = labelVal;
+            runInvestmentSimulation();
+        }
+
+        // Helper to format currency
+        function formatINR(val) {
+            return '₹' + Math.round(val).toLocaleString('en-IN');
+        }
+
+        // --- GLOBAL SIMULATION DATA & CHARTS ---
+        let epidemicChart = null;
+        let epidemicData = [];
+
+        let populationChart = null;
+        let populationData = [];
+
+        let trajectoryChart = null;
+        let distributionChart = null;
+        let investmentEndingBalances = [];
+
+        // 1. Epidemic Spread Simulator Engine
+        function runEpidemicSimulation() {
+            const initialInfected = parseInt(document.getElementById('ep-infected').value);
+            const infectRate = parseFloat(document.getElementById('ep-infectrate').value);
+            const recoveryRate = parseFloat(document.getElementById('ep-recrate').value) / 100.0;
+            const days = parseInt(document.getElementById('ep-days').value);
+
+            let daysList = [0];
+            let activeList = [initialInfected];
+            let recoveredList = [0];
+            let cumulativeList = [initialInfected];
+
+            let dayActiveExceededMillion = null;
+
+            for (let day = 1; day <= days; day++) {
+                let prevActive = activeList[activeList.length - 1];
+                let prevRecovered = recoveredList[recoveredList.length - 1];
+                let prevCumulative = cumulativeList[cumulativeList.length - 1];
+
+                let newInfections = prevActive * infectRate;
+                let newRecoveries = prevActive * recoveryRate;
+
+                let currentActive = prevActive + newInfections - newRecoveries;
+                let currentRecovered = prevRecovered + newRecoveries;
+                let currentCumulative = prevCumulative + newInfections;
+
+                daysList.push(day);
+                activeList.push(currentActive);
+                recoveredList.push(currentRecovered);
+                cumulativeList.push(currentCumulative);
+
+                if (currentActive >= 1000000 && dayActiveExceededMillion === null) {
+                    dayActiveExceededMillion = day;
+                }
+            }
+
+            // Save for CSV export
+            epidemicData = daysList.map((d, i) => ({
+                Day: d,
+                Active: activeList[i],
+                Recovered: recoveredList[i],
+                Cumulative: cumulativeList[i]
+            }));
+
+            // Update DOM metrics
+            const finalActive = activeList[activeList.length - 1];
+            const finalRecovered = recoveredList[recoveredList.length - 1];
+            const finalCumulative = cumulativeList[cumulativeList.length - 1];
+
+            document.getElementById('ep-stat-active').textContent = Math.round(finalActive).toLocaleString();
+            document.getElementById('ep-stat-recovered').textContent = Math.round(finalRecovered).toLocaleString();
+            document.getElementById('ep-stat-cumulative').textContent = Math.round(finalCumulative).toLocaleString();
+            document.getElementById('ep-stat-milestone').textContent = dayActiveExceededMillion !== null ? 'Day ' + dayActiveExceededMillion : 'N/A';
+
+            // Chart rendering
+            if (epidemicChart) {
+                epidemicChart.destroy();
+            }
+
+            const ctx = document.getElementById('epidemicChart').getContext('2d');
+            epidemicChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: daysList,
+                    datasets: [
+                        {
+                            label: 'Active Infected',
+                            data: activeList,
+                            borderColor: '#f43f5e',
+                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.15
+                        },
+                        {
+                            label: 'Recovered',
+                            data: recoveredList,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            borderWidth: 2,
+                            tension: 0.15
+                        },
+                        {
+                            label: 'Cumulative Cases',
+                            data: cumulativeList,
+                            borderColor: '#6366f1',
+                            borderWidth: 1.5,
+                            borderDash: [5, 5],
+                            tension: 0.15
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'logarithmic',
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function (value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#f8fafc',
+                                font: {
+                                    family: 'Outfit'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportEpidemicCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Day,Active_Infected,Recovered,Cumulative_Infected\n";
+            epidemicData.forEach(row => {
+                csvContent += `${row.Day},${row.Active.toFixed(2)},${row.Recovered.toFixed(2)},${row.Cumulative.toFixed(2)}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "epidemic_spread_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 2. AI Population Growth Analyzer Engine
+        function runPopulationSimulation() {
+            const initialPop = parseInt(document.getElementById('pop-initial').value);
+            const growthRate = parseFloat(document.getElementById('pop-growth').value) / 100.0;
+            const migrationRate = parseFloat(document.getElementById('pop-migration').value) / 100.0;
+            const years = parseInt(document.getElementById('pop-years').value);
+
+            let yearsList = [0];
+            let popList = [initialPop];
+            let growthContributionList = [0];
+            let migrationContributionList = [0];
+
+            let yearExceededMillion = null;
+            let currentPop = initialPop;
+
+            // Run simulation up to 150 years in memory to discover the 1 Million milestone year,
+            // while capturing metrics/chart data for the input 'years' limit.
+            for (let yr = 1; yr <= Math.max(years, 150); yr++) {
+                let prevPop = currentPop;
+                let added = prevPop * growthRate;
+                let removed = prevPop * migrationRate;
+                currentPop = prevPop + added - removed;
+
+                if (yr <= years) {
+                    yearsList.push(yr);
+                    popList.push(currentPop);
+                    growthContributionList.push(added);
+                    migrationContributionList.push(removed);
+                }
+
+                if (currentPop >= 1000000 && yearExceededMillion === null) {
+                    yearExceededMillion = yr;
+                }
+            }
+
+            // Save for CSV export
+            populationData = yearsList.map((y, i) => ({
+                Year: y,
+                Population: popList[i],
+                Growth: growthContributionList[i],
+                Migration: migrationContributionList[i]
+            }));
+
+            // Update DOM metrics
+            const finalPop = popList[yearsList.indexOf(years)];
+            document.getElementById('pop-stat-initial').textContent = initialPop.toLocaleString();
+            document.getElementById('pop-stat-final').textContent = Math.round(finalPop).toLocaleString();
+            document.getElementById('pop-stat-milestone').textContent = yearExceededMillion !== null ? 'Year ' + yearExceededMillion : 'N/A';
+
+            // Populate Table
+            const tbody = document.querySelector('#population-table tbody');
+            tbody.innerHTML = '';
+            for (let i = 0; i <= years; i++) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${yearsList[i]}</td>
+                    <td>${Math.round(popList[i]).toLocaleString()}</td>
+                    <td>${i === 0 ? '-' : '+' + Math.round(growthContributionList[i]).toLocaleString()}</td>
+                    <td>${i === 0 ? '-' : '-' + Math.round(migrationContributionList[i]).toLocaleString()}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            // Chart rendering
+            if (populationChart) {
+                populationChart.destroy();
+            }
+
+            const ctx = document.getElementById('populationChart').getContext('2d');
+            populationChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: yearsList,
+                    datasets: [{
+                        label: 'Projected Population',
+                        data: popList,
+                        borderColor: '#a855f7',
+                        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function (value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#f8fafc',
+                                font: {
+                                    family: 'Outfit'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportPopulationCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Year,Population,Growth_Contribution,Migration_Loss\n";
+            populationData.forEach(row => {
+                csvContent += `${row.Year},${Math.round(row.Population)},${Math.round(row.Growth)},${Math.round(row.Migration)}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "population_projection_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 3. Smart Investment Predictor Engine
+        function runInvestmentSimulation() {
+            const initialInvestment = parseFloat(document.getElementById('inv-initial').value);
+            const minReturn = parseFloat(document.getElementById('inv-min-return').value) / 100.0;
+            const maxReturn = parseFloat(document.getElementById('inv-max-return').value) / 100.0;
+            const years = parseInt(document.getElementById('inv-years').value);
+            const runs = parseInt(document.getElementById('inv-runs').value);
+
+            let trajectories = [];
+            let endingBalances = [];
+
+            // Execute simulations
+            for (let r = 0; r < runs; r++) {
+                let balance = initialInvestment;
+                let trajectory = [balance];
+                for (let y = 1; y <= years; y++) {
+                    // Uniform random return
+                    let annReturn = minReturn + Math.random() * (maxReturn - minReturn);
+                    balance = balance * (1 + annReturn);
+                    trajectory.push(balance);
+                }
+                endingBalances.push(balance);
+                trajectories.push(trajectory);
+            }
+
+            investmentEndingBalances = endingBalances;
+
+            // Analysis
+            let bestIdx = 0;
+            let worstIdx = 0;
+            let sum = 0;
+
+            for (let i = 0; i < runs; i++) {
+                if (endingBalances[i] > endingBalances[bestIdx]) bestIdx = i;
+                if (endingBalances[i] < endingBalances[worstIdx]) worstIdx = i;
+                sum += endingBalances[i];
+            }
+
+            const bestOutcome = endingBalances[bestIdx];
+            const worstOutcome = endingBalances[worstIdx];
+            const averageOutcome = sum / runs;
+
+            // Compute Median
+            const sortedBalances = [...endingBalances].sort((a, b) => a - b);
+            const medianOutcome = sortedBalances[Math.floor(runs / 2)];
+
+            // Update DOM
+            document.getElementById('inv-stat-best').textContent = formatINR(bestOutcome);
+            document.getElementById('inv-stat-worst').textContent = formatINR(worstOutcome);
+            document.getElementById('inv-stat-average').textContent = formatINR(averageOutcome);
+            document.getElementById('inv-stat-median').textContent = formatINR(medianOutcome);
+
+            // Chart 1: Trajectory lines
+            if (trajectoryChart) trajectoryChart.destroy();
+
+            // Select 10 random sample runs to display for visualization clarity alongside Best/Worst/Avg
+            let sampleIndices = [];
+            while(sampleIndices.length < 8) {
+                let idx = Math.floor(Math.random() * runs);
+                if (!sampleIndices.includes(idx) && idx !== bestIdx && idx !== worstIdx) {
+                    sampleIndices.push(idx);
+                }
+            }
+
+            let timeLabels = Array.from({length: years + 1}, (_, i) => i);
+            let datasets = [];
+
+            // Add sample trajectories
+            sampleIndices.forEach(idx => {
+                datasets.push({
+                    label: `Scenario ${idx+1}`,
+                    data: trajectories[idx],
+                    borderColor: 'rgba(148, 163, 184, 0.15)',
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    tension: 0.1
+                });
+            });
+
+            // Add Best, Worst, Average
+            datasets.push({
+                label: 'Best Case (Max)',
+                data: trajectories[bestIdx],
+                borderColor: '#10b981',
+                borderWidth: 2.5,
+                pointRadius: 0,
+                tension: 0.1
+            });
+
+            datasets.push({
+                label: 'Worst Case (Min)',
+                data: trajectories[worstIdx],
+                borderColor: '#f43f5e',
+                borderWidth: 2.5,
+                pointRadius: 0,
+                tension: 0.1
+            });
+
+            // Calculate average trajectory path
+            let averageTrajectory = [];
+            for (let y = 0; y <= years; y++) {
+                let sumAtY = 0;
+                for (let r = 0; r < runs; r++) {
+                    sumAtY += trajectories[r][y];
+                }
+                averageTrajectory.push(sumAtY / runs);
+            }
+
+            datasets.push({
+                label: 'Mean Trajectory',
+                data: averageTrajectory,
+                borderColor: '#6366f1',
+                borderWidth: 2.5,
+                borderDash: [5, 5],
+                pointRadius: 0,
+                tension: 0.1
+            });
+
+            const ctx1 = document.getElementById('investmentTrajectoryChart').getContext('2d');
+            trajectoryChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function (value) {
+                                    return '₹' + value.toLocaleString('en-IN');
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                filter: function(item, chart) {
+                                    // Only show Best, Worst, Mean in the legend to avoid cluttering
+                                    return ['Best Case (Max)', 'Worst Case (Min)', 'Mean Trajectory'].includes(item.text);
+                                },
+                                color: '#f8fafc',
+                                font: {
+                                    family: 'Outfit'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Ending Balance Distribution (Histogram)
+            if (distributionChart) distributionChart.destroy();
+
+            // Create buckets for distribution
+            const bucketCount = 20;
+            const minVal = worstOutcome;
+            const maxVal = bestOutcome;
+            const bucketSize = (maxVal - minVal) / bucketCount;
+
+            let buckets = Array.from({length: bucketCount}, () => 0);
+            let bucketLabels = [];
+
+            for (let b = 0; b < bucketCount; b++) {
+                let start = minVal + b * bucketSize;
+                let end = start + bucketSize;
+                bucketLabels.push(`${(start/100000).toFixed(1)}L - ${(end/100000).toFixed(1)}L`);
+            }
+
+            endingBalances.forEach(bal => {
+                let bucketIdx = Math.floor((bal - minVal) / bucketSize);
+                if (bucketIdx >= bucketCount) bucketIdx = bucketCount - 1;
+                if (bucketIdx < 0) bucketIdx = 0;
+                buckets[bucketIdx]++;
+            });
+
+            const ctx2 = document.getElementById('investmentDistributionChart').getContext('2d');
+            distributionChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: bucketLabels,
+                    datasets: [{
+                        label: 'Frequency (Runs)',
+                        data: buckets,
+                        backgroundColor: 'rgba(168, 85, 247, 0.6)',
+                        borderColor: '#a855f7',
+                        borderWidth: 1.5,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                font: {
+                                    size: 9
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#f8fafc',
+                                font: {
+                                    family: 'Outfit'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportInvestmentCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Simulation_Run,Ending_Balance_INR\n";
+            investmentEndingBalances.forEach((bal, idx) => {
+                csvContent += `${idx + 1},${bal.toFixed(2)}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "investment_monte_carlo_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize simulations on window load
+        window.onload = function() {
+            runEpidemicSimulation();
+            runPopulationSimulation();
+            runInvestmentSimulation();
+        }
+    </script>
+</body>
+</html>
